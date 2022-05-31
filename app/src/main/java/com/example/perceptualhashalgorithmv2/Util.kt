@@ -4,6 +4,7 @@ import android.Manifest
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.core.graphics.scale
+import kotlinx.coroutines.*
 import kotlin.math.cos
 import kotlin.math.sqrt
 
@@ -15,9 +16,9 @@ object Util {
         it.fill(1.0, 1, reduceSize)
     }
     const val READ_EXTERNAL_STORAGE = Manifest.permission.READ_EXTERNAL_STORAGE
-    fun getImageHash(path: String): String {
+    suspend fun getImageHash(path: String): Deferred<String> = withContext(Dispatchers.Default) {
         val scaledBitmap = getScaledBitmap(path)
-        return getImageHash(scaledBitmap)
+        return@withContext async { getImageHash(scaledBitmap) }
 
     }
 
@@ -120,6 +121,23 @@ object Util {
             }
         }
         return F
+    }
+
+    suspend fun getImageHashWithList(it: List<String>) = withContext(Dispatchers.Default) {
+        val innerList = ArrayList<MainViewModel.ImageWithHash>()
+        it.forEach { path ->
+            try {
+                launch {
+                    val hash = Util.getImageHash(path).await()
+                    innerList.add(MainViewModel.ImageWithHash(hash, path))
+                    log("PATH : INDEX : ${imagePathList.indexOf(path)} PATH : $path")
+
+                }
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+            }
+        }
+        return@withContext innerList
     }
 }
 

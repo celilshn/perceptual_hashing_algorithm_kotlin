@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Default
+import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -35,25 +36,23 @@ class MainViewModel @Inject constructor(@ApplicationContext private val context:
         val mListAll: MutableList<ImageWithHash> = CopyOnWriteArrayList()
         val currentTimeMillis = System.currentTimeMillis()
         val imagePathList = getImagePathListFromSystem()
+        val chunkedList = imagePathList.chunked(100)
         CoroutineScope(Default).launch {
-            println("PATH : ----------------------------------------withContext Başı----------------------------------------- ")
+            println("PATH : ----------------------------------------wdithContext Başı----------------------------------------- ")
 
             withContext(Default) {
-                imagePathList.forEach { path ->
+                chunkedList.forEach {
                     launch {
-                        try {
-                            log("PATH : $path")
-                            log("PATH : ${imagePathList.indexOf(path)}")
-                            val hash = Util.getImageHash(path)
-                            ImageWithHash(hash, path)
-                        } catch (ex: Exception) {
-                            ex.printStackTrace()
-                        }
+                        val list = Util.getImageHashWithList(it)
+                        mList.addAll(list)
+
                     }
                 }
             }
-            getImagePathList().postValue(mListAll)
-            println("PATH : ----------------------------------------withContext Sonu----------------------------------------- ${System.currentTimeMillis() - currentTimeMillis}")
+            launch(Main) {
+                getImagePathList().value = (mList)
+                println("PATH : ----------------------------------------withContext Sonu----------------------------------------- ${System.currentTimeMillis() - currentTimeMillis}")
+            }
         }
     }
 
