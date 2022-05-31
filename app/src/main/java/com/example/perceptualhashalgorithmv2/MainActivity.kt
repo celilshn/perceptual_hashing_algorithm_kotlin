@@ -72,10 +72,10 @@ class MainActivity : AppCompatActivity() {
 
     inner class RecAdapter(val callback: (int: Int) -> Unit) :
         RecyclerView.Adapter<RecAdapter.RecHolder>() {
-        var list = ArrayList<ArrayList<MainViewModel.M>>()
+        var list = ArrayList<Group>()
 
         @JvmName("setList1")
-        fun setList(list: ArrayList<ArrayList<MainViewModel.M>>) {
+        fun setList(list: ArrayList<Group>) {
             this.list = list
             notifyDataSetChanged()
         }
@@ -92,12 +92,15 @@ class MainActivity : AppCompatActivity() {
             val item = list[position]
             log("BINDVIEWHOLDER")
             with(holder.b) {
-                Glide.with(holder.itemView.context).load(item[0].bitmap).into(imageView)
-                Glide.with(holder.itemView.context).load(item[1].bitmap).into(imageView2)
+                Glide.with(holder.itemView.context).load(item.original.path).into(imageView)
+                Glide.with(holder.itemView.context).load(item.list.first().path).into(imageView2)
                 textView.text =
-                    item[0].path.substring(item[0].path.length - 10, item[0].path.length)
+                    item.original.path.substring(item.original.path.length - 10, item.original.path.length)
                 textView2.text =
-                    item[1].path.substring(item[1].path.length - 10, item[1].path.length)
+                    item.list.first().path.substring(
+                        item.list.first().path.length - 10,
+                        item.list.first().path.length
+                    )
             }
             callback.invoke(position)
 
