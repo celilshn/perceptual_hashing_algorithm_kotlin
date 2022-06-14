@@ -4,7 +4,10 @@ import android.Manifest
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.core.graphics.scale
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.withContext
 import kotlin.math.cos
 import kotlin.math.sqrt
 
@@ -123,20 +126,22 @@ object Util {
         return F
     }
 
-    suspend fun getImageHashWithList(it: List<String>) = withContext(Dispatchers.Default) {
+    suspend fun getImageHashWithList(list: List<String>) = withContext(Dispatchers.Default) {
         val innerList = ArrayList<MainViewModel.ImageWithHash>()
-        it.forEach { path ->
-            try {
-                launch {
-                    val hash = Util.getImageHash(path).await()
-                    innerList.add(MainViewModel.ImageWithHash(hash, path))
-                    log("PATH : INDEX : ${imagePathList.indexOf(path)} PATH : $path")
-
+        log("PATH : INNER LIST SIZE : ${innerList.size}")
+        list
+            .map {
+                async { MainViewModel.ImageWithHash(getImageHash(it).await(), it) }.also {
+                    println("PATH : ${Thread.currentThread().name}")
                 }
-            } catch (ex: Exception) {
-                ex.printStackTrace()
+            }
+            .map { innerList.add(it.await()) }
+        /*list.map {
+            async { MainViewModel.ImageWithHash(getImageHash(it).await(), it) }.also {
+                println("PATH : ${Thread.currentThread().name}")
             }
         }
+            .map { innerList.add(it.await()) }*/
         return@withContext innerList
     }
 }
