@@ -3,11 +3,11 @@ package com.example.perceptualhashalgorithmv2
 import android.Manifest
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.graphics.scale
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import java.util.concurrent.Executors
 import kotlin.math.cos
 import kotlin.math.sqrt
 
@@ -20,9 +20,9 @@ object Util {
     }
     const val READ_EXTERNAL_STORAGE = Manifest.permission.READ_EXTERNAL_STORAGE
     suspend fun getImageHash(path: String): Deferred<String> = withContext(Dispatchers.Default) {
-        val scaledBitmap = getScaledBitmap(path)
-        return@withContext async { getImageHash(scaledBitmap) }
+        println("PATH : ----------------------------------------${Thread.currentThread().name}----------------------------------------- ")
 
+        return@withContext async { getImageHash(getScaledBitmap(path)) }
     }
 
     private fun getScaledBitmap(path: String) =
@@ -77,6 +77,7 @@ object Util {
         //FIND AVG
         val pixelAvg = getPixelAvg(transformedPixels)
         //FIND HASH
+
         return getImageHash(transformedPixels, pixelAvg)
     }
 
@@ -127,22 +128,12 @@ object Util {
     }
 
     suspend fun getImageHashWithList(list: List<String>) = withContext(Dispatchers.Default) {
-        val innerList = ArrayList<MainViewModel.ImageWithHash>()
-        log("PATH : INNER LIST SIZE : ${innerList.size}")
-        list
+
+        return@withContext list
             .map {
-                async { MainViewModel.ImageWithHash(getImageHash(it).await(), it) }.also {
-                    println("PATH : ${Thread.currentThread().name}")
-                }
-            }
-            .map { innerList.add(it.await()) }
-        /*list.map {
-            async { MainViewModel.ImageWithHash(getImageHash(it).await(), it) }.also {
-                println("PATH : ${Thread.currentThread().name}")
-            }
-        }
-            .map { innerList.add(it.await()) }*/
-        return@withContext innerList
+                async { MainViewModel.ImageWithHash(getImageHash(it).await(), it) }
+            }.awaitAll()
+
     }
 }
 

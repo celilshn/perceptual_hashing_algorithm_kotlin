@@ -1,11 +1,15 @@
 package com.example.perceptualhashalgorithmv2
 
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
+import android.app.Notification
+import android.app.NotificationManager
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -50,6 +54,8 @@ class MainActivity : AppCompatActivity() {
             setupObservers(it)
         }
         permissionLauncher.launch(READ_EXTERNAL_STORAGE)
+
+
     }
 
     private fun setupObservers(mainViewModel: MainViewModel) {
